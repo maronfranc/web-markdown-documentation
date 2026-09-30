@@ -1,0 +1,97 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import { docTitle } from '../../lib/docs';
+
+export async function getStaticPaths() {
+	const docs = await getCollection('docs');
+	return docs.map((entry) => ({
+		params: { slug: entry.id },
+		props: { entry },
+	}));
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const title = docTitle(entry);
+const hasH1 = headings.some((heading) => heading.depth === 1);
+---
+
+<Layout title={`${title} — Docs`} description={entry.data.description}>
+	<nav class="doc-nav">
+		<a href="/docs">← All documentation</a>
+	</nav>
+	<article class="prose">
+		{!hasH1 && <h1>{title}</h1>}
+		<Content />
+	</article>
+	{
+		headings.length > 0 && (
+			<aside class="doc-toc">
+				<p class="doc-toc__title">On this page</p>
+				<ul>
+					{headings
+						.filter((heading) => heading.depth <= 3)
+						.map((heading) => (
+							<li class={`depth-${heading.depth}`}>
+								<a href={`#${heading.slug}`}>{heading.text}</a>
+							</li>
+						))}
+				</ul>
+			</aside>
+		)
+	}
+</Layout>
+
+<style>
+	.doc-nav {
+		margin-bottom: 1.5rem;
+		font-size: 0.9375rem;
+	}
+
+	.doc-nav a {
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	.doc-nav a:hover {
+		color: var(--fg);
+	}
+
+	.doc-toc {
+		margin-top: 3rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--border);
+	}
+
+	.doc-toc__title {
+		margin: 0 0 0.5rem;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.doc-toc ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.doc-toc .depth-3 {
+		padding-inline-start: 1rem;
+	}
+
+	.doc-toc a {
+		display: inline-block;
+		padding: 0.15rem 0;
+		color: var(--muted);
+		font-size: 0.9375rem;
+		text-decoration: none;
+	}
+
+	.doc-toc a:hover {
+		color: var(--fg);
+	}
+</style>

@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="en" data-theme="auto">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		{description && <meta name="description" content={description} />}
+		<title>{title}</title>
+		<script is:inline>
+			(() => {
+				const saved = localStorage.getItem('theme');
+				document.documentElement.dataset.theme =
+					saved === 'light' || saved === 'dark' ? saved : 'auto';
+			})();
+		</script>
+	</head>
+	<body>
+		<header class="site-header">
+			<a class="site-header__brand" href="/">Astro</a>
+			<nav class="site-header__nav">
+				<a href="/docs">Docs</a>
+			</nav>
+			<ThemeToggle />
+		</header>
+		<main class="site-main">
+			<slot />
+		</main>
+	</body>
+</html>
+
+<style>
+	.site-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.875rem 1.5rem;
+		border-bottom: 1px solid var(--border);
+		background: var(--surface);
+	}
+
+	.site-header__brand {
+		color: var(--fg);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		text-decoration: none;
+	}
+
+	.site-header__nav {
+		display: flex;
+		gap: 1rem;
+		margin-inline-start: auto;
+	}
+
+	.site-header__nav a {
+		color: var(--muted);
+		font-size: 0.9375rem;
+		text-decoration: none;
+	}
+
+	.site-header__nav a:hover {
+		color: var(--fg);
+	}
+
+	.site-main {
+		max-width: 48rem;
+		margin: 0 auto;
+		padding: 2.5rem 1.5rem;
+	}
+</style>

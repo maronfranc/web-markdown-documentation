@@ -1,0 +1,87 @@
+<button id="theme-toggle" class="theme-toggle" type="button" data-mode="auto" aria-label="Color theme: auto. Activate to switch to light.">
+	<span class="theme-toggle__icon" aria-hidden="true">◐</span>
+	<span class="theme-toggle__label">Auto</span>
+</button>
+
+<script>
+	const MODES = ['auto', 'light', 'dark'] as const;
+	type Mode = (typeof MODES)[number];
+	const LABELS: Record<Mode, string> = {
+		auto: 'Auto',
+		light: 'Light',
+		dark: 'Dark',
+	};
+
+	function nextMode(mode: Mode): Mode {
+		return MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+	}
+
+	function apply(mode: Mode, persist: boolean): void {
+		document.documentElement.dataset.theme = mode;
+		if (persist) localStorage.setItem('theme', mode);
+
+		const button = document.getElementById('theme-toggle');
+		if (!button) return;
+		button.dataset.mode = mode;
+		const label = button.querySelector<HTMLElement>('.theme-toggle__label');
+		if (label) label.textContent = LABELS[mode];
+		button.setAttribute(
+			'aria-label',
+			`Color theme: ${LABELS[mode].toLowerCase()}. Activate to switch to ${LABELS[nextMode(mode)]}.`,
+		);
+	}
+
+	const button = document.getElementById('theme-toggle');
+	button?.addEventListener('click', () => {
+		const mode = (button.dataset.mode ?? 'auto') as Mode;
+		apply(nextMode(mode), true);
+	});
+
+	window.addEventListener('storage', (event) => {
+		if (event.key !== 'theme') return;
+		const mode = event.newValue;
+		if (mode === 'auto' || mode === 'light' || mode === 'dark') apply(mode, false);
+	});
+
+	apply((document.documentElement.dataset.theme as Mode) || 'auto', false);
+</script>
+
+<style>
+	.theme-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.4rem 0.85rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface);
+		color: var(--fg);
+		font: inherit;
+		font-size: 0.875rem;
+		font-weight: 500;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			background-color 0.15s ease,
+			border-color 0.15s ease,
+			color 0.15s ease;
+	}
+
+	.theme-toggle:hover {
+		border-color: var(--muted);
+	}
+
+	.theme-toggle:focus-visible {
+		outline: 2px solid var(--fg);
+		outline-offset: 2px;
+	}
+
+	.theme-toggle__icon {
+		font-size: 0.9em;
+	}
+
+	.theme-toggle__label {
+		min-width: 3.25rem;
+		text-align: left;
+	}
+</style>
